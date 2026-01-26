@@ -1,6 +1,11 @@
+# macOS junk
+.DS_Store
+
+# Python
 __pycache__/
 *.pyc
-.env
 venv/
-.DS_Store
 .ipynb_checkpoints/
+
+# Environment
+.env
