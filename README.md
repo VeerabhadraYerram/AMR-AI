@@ -1,125 +1,67 @@
-# Gene-Attributable Antimicrobial Resistance Aggregation (GAARA)
+# AMR Intelligence Platform: One Health Surveillance Framework
 
 ## Overview
 
-This project implements a novel computational method for generating antibiotic-level antimicrobial resistance (AMR) intelligence by aggregating gene-attributable resistance signals across multiple pathogens.
+The AMR Intelligence Platform is an AI-enabled computational framework designed to support **One Health Antimicrobial Resistance (AMR) surveillance** in the Indian context. 
 
-Instead of averaging resistance predictions, this system decomposes resistance into gene-level contribution signals and recomposes them to generate biologically meaningful antibiotic risk indicators.
-
-The core method is referred to as:
-
-> **GAARA – Gene-Attributable Antibiotic Risk Aggregation**
-
----
-
-## Problem Statement
-
-Current AMR systems:
-
-- Predict resistance per isolate or pathogen
-- Report percentage resistance tables
-- Aggregate using simple averages or thresholds
-
-However, these approaches lose mechanistic information and fail to preserve genetic causation during cross-pathogen aggregation.
-
-This project addresses this limitation.
+This platform integrates genomic and phenotypic data across multiple sectors (Human, Animal, Food) to:
+1.  **Quantify** the antimicrobial resistance burden.
+2.  **Compare** resistance determinants across host types.
+3.  **Infer** transmission pathways using resistance pattern clustering and similarity matrices.
 
 ---
 
-## Core Innovation
+## 🔬 Scientific Positioning
 
-GAARA performs:
+This project is a macroscopic surveillance and modeling system. 
 
-1. **Prediction Decomposition**
-   - Resistance predictions are decomposed into gene-level contribution components.
+**What we DO:**
+*   Quantify resistance prevalence and Multi-Drug Resistance (MDR) burden.
+*   Model cross-sector gene similarity.
+*   Infer transmission networks using computational resistance pattern clustering.
+*   Utilize de-identified retrospective hospital data alongside public animal/food datasets.
 
-2. **Gene-Attributable Risk Normalization**
-   - Each gene's contribution is normalized into a gene-attributable resistance risk mass.
-
-3. **Intra-Pathogen Aggregation**
-   - Gene-attributable resistance is aggregated within each pathogen.
-
-4. **Cross-Pathogen Recomposition**
-   - Gene-attributable resistance signals are recomposed across pathogens to generate antibiotic-level resistance indicators.
-
-This preserves biological mechanism while enabling scalable surveillance.
+**What we DO NOT DO:**
+*   We do not predict individual clinical outcomes or provide patient treatment recommendations.
+*   We do not claim confirmed epidemiological transmission (e.g., via contact tracing). All pathways are computational inferences based on shared resistance determinants.
+*   We do not estimate mortality or economic burden.
 
 ---
 
-## Current Implementation
+## 🏗 System Architecture & Capabilities
 
-### Pathogens (Phase 1)
+The platform is built around a robust Intelligence Core designed to demonstrate methodological soundness for surveillance:
 
-- Escherichia coli
-- Klebsiella pneumoniae
+### 1. Data Harmonization
+*   Standardizes diverse metadata including Host-Type (Human, Animal, Food), sample year, and Ward/ICU.
 
-Each pathogen has:
+### 2. Analytical Intelligence Core
+*   **Prevalence Calculation:** Dynamic computation of resistance rates.
+*   **MDR Classification:** Automated tagging of Multi-Drug Resistant isolates based on standardized guidelines.
+*   **Host-Stratified Burden:** Comparative analysis of resistance across different sectors.
+*   **Similarity Matrices:** Measuring the genetic and phenotypic overlap across hosts.
+*   **Clustering & Network Inference:** Utilizing algorithms like DBSCAN to group similar resistance profiles and generate network adjacencies for transmission inference.
 
-- `model.pkl`
-- `feature_importance.csv`
-
----
-
-## Project Structure
-
-AMR-AI-Platform/
-│
-├── models/
-│ ├── e_coli/
-│ │ ├── model.pkl
-│ │ └── feature_importance.csv
-│ │
-│ ├── k_pneumoniae/
-│ │ ├── model.pkl
-│ │ └── feature_importance.csv
-│
-├── scripts/
-│ ├── simple_aggregation.py
-│ ├── gaara_aggregation.py
-│
-├── outputs/
-│ ├── antibiotic_cross_pathogen_risk.csv
-│
-├── requirements.txt
-└── README.md
+### 3. Statistical Validation Layer
+*   Ensures scientific rigor through bootstrapping for prevalence confidence intervals, sensitivity analysis, and cross-dataset validation for clustering robustness.
 
 ---
 
-## Outputs
+## 📈 Intended Use & Limitations
 
-### Output Class 1
-- Trained pathogen-specific ML models (.pkl)
+This system is explicitly designed for public health researchers and policymakers to identify high-probability AMR reservoirs and directional trends across sectors.
 
-### Output Class 2
-- Feature importance tables per pathogen
-
-### Output Class 3
-- Cross-pathogen antibiotic risk aggregation tables
-
-### Output Class 4 (Demo Layer)
-- Interactive UI for antibiotic-level resistance intelligence
+**Explicit Limitations:**
+*   **Inferred Transmission:** The transmission networks generated by this framework are *computational inferences*. They represent shared genetic/phenotypic markers, not confirmed direct transmission events.
+*   **Data Caveats:** Findings are heavily dependent on the completeness, quality, and specific sampling biases of the underlying retrospective hospital and public datasets.
 
 ---
 
-## Intended Use
+## 💻 Tech Stack
 
-This system is designed for:
-
-- Population-level AMR surveillance
-- Antibiotic stewardship intelligence
-- Mechanism-aware epidemiological analysis
-
-It is **not** intended for direct clinical decision-making.
-
----
-
-## Future Work
-
-- Integration of hospital clinical datasets
-- Regional stratification
-- Temporal trend modeling
-- Advanced GAARA weighting mechanisms
-- Deployment-ready dashboard
+*   **Backend:** FastAPI (Python), Pandas, Scikit-Learn
+*   **Frontend:** React, Vite, Recharts
+*   **Data Processing:** Custom Python pipelines for data harmonization and ML inference.
 
 ---
 
