@@ -1,0 +1,21 @@
+feature,model_importance,abs_model_importance,direction,feature_type,method,,chi2_score,chi2_pvalue
+antibiotic_name_amikacin,-0.938087671,0.938087671,resistance↓,antibiotic,logistic_regression + chi_square,,64.91678894,7.81E-16
+antibiotic_name_aztreonam,0.592106554,0.592106554,resistance↑,antibiotic,logistic_regression + chi_square,,18.1039246,2.09E-05
+antibiotic_name_cefepime,1.753299191,1.753299191,resistance↑,antibiotic,logistic_regression + chi_square,,262.5929598,4.67E-59
+antibiotic_name_cefoxitin,0.07328929707,0.07328929707,resistance↑,antibiotic,logistic_regression + chi_square,,0.4015809441,0.526273919
+antibiotic_name_ciprofloxacin,1.37814523,1.37814523,resistance↑,antibiotic,logistic_regression + chi_square,,151.5845131,7.81E-35
+antibiotic_name_ertapenem,-3.408366031,3.408366031,resistance↓,antibiotic,logistic_regression + chi_square,,215.0834754,1.07E-48
+antibiotic_name_gentamicin,-0.6049243119,0.6049243119,resistance↓,antibiotic,logistic_regression + chi_square,,35.69972638,2.30E-09
+antibiotic_name_imipenem,-1.271927,1.271927,resistance↓,antibiotic,logistic_regression + chi_square,,95.59265575,1.41E-22
+antibiotic_name_levofloxacin,0.6467869404,0.6467869404,resistance↑,antibiotic,logistic_regression + chi_square,,23.02124228,1.60E-06
+antibiotic_name_meropenem,-1.122830383,1.122830383,resistance↓,antibiotic,logistic_regression + chi_square,,81.95529471,1.39E-19
+antibiotic_name_piperacillin/tazobactam,-0.5138461806,0.5138461806,resistance↓,antibiotic,logistic_regression + chi_square,,28.52863809,9.23E-08
+antibiotic_name_tetracycline,0.592106554,0.592106554,resistance↑,antibiotic,logistic_regression + chi_square,,18.1039246,2.09E-05
+antibiotic_name_tobramycin,0.3398465228,0.3398465228,resistance↑,antibiotic,logistic_regression + chi_square,,3.278211788,0.07020538339
+antibiotic_name_trimethoprim/sulfamethoxazole,1.143153647,1.143153647,resistance↑,antibiotic,logistic_regression + chi_square,,97.37108564,5.75E-23
+gene_blaCTX_M,2.049921108,2.049921108,resistance↑,gene,logistic_regression + chi_square,,531.1490152,1.59E-117
+gene_blaSHV,-0.1643631284,0.1643631284,resistance↓,gene,logistic_regression + chi_square,,0.1626333251,0.6867435602
+gene_blaNDM,0.03913259584,0.03913259584,resistance↑,gene,logistic_regression + chi_square,,109.785535,1.09E-25
+gene_fosA,0.07476288864,0.07476288864,resistance↑,gene,logistic_regression + chi_square,,0.05101826511,0.8213007955
+gene_qnrB,0.8269268032,0.8269268032,resistance↑,gene,logistic_regression + chi_square,,314.6095557,2.16E-70
+gene_any_present,-1.341247642,1.341247642,resistance↓,gene,logistic_regression + chi_square,,0,
