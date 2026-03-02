@@ -11,7 +11,9 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 # Data Paths
-DATA_DIR = "/Users/shivaniyerram/Desktop/Projects/AMR-AI-Platform/data"
+ROUTES_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(ROUTES_DIR, "..", "..", "..", ".."))
+DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 KLEB_PATH = os.path.join(DATA_DIR, "FINAL_AMR_KLEBSIELLA (2).csv")
 ECOLI_PATH = os.path.join(DATA_DIR, "E_Coli_Final_ML_Dataset_v1.csv")
 SAUREUS_PATH = os.path.join(DATA_DIR, "S_aureus.csv")
