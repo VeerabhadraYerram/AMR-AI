@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getMapData, getAntibiotics } from '../services/api';
 import { Map, AlertCircle, Filter } from 'lucide-react';
-import IndiaMap from './IndiaMap';
+import ActualHyderabadMap from './ActualHyderabadMap';
 
 const MapVisualization = () => {
     const [mapType, setMapType] = useState('antibiotic_performance');
@@ -52,12 +52,12 @@ const MapVisualization = () => {
         <section className="card">
             <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-md)', flexWrap: 'wrap', gap: '1rem' }}>
                 <div style={{ flex: 1, minWidth: '300px' }}>
-                    <h2 className="section-title" style={{ marginBottom: '4px' }}>India Regional Surveillance</h2>
+                    <h2 className="section-title" style={{ marginBottom: '4px' }}>Hyderabad City Surveillance</h2>
                     <p style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', margin: 0 }}>
                         {mapType === 'antibiotic_performance' ? (
                             selectedAntibiotic
-                                ? `Resistance rates for ${selectedAntibiotic} across Indian states.`
-                                : 'Overall antibiotic resistance rates across Indian states.'
+                                ? `Resistance rates for ${selectedAntibiotic} across Hyderabad regions.`
+                                : 'Overall antibiotic resistance rates across Hyderabad regions.'
                         ) : (
                             'Carbapenem (last-resort antibiotic) resistance — high rates signal critical AMR threat zones.'
                         )}
@@ -142,7 +142,7 @@ const MapVisualization = () => {
                                 <p>{mapData?.message || "Regional metadata missing."}</p>
                             </div>
                         ) : (
-                            <IndiaMap data={mapData} mapType={mapType} />
+                            <ActualHyderabadMap data={mapData} mapType={mapType} />
                         )}
                     </>
                 )}

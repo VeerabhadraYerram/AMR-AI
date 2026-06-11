@@ -17,206 +17,106 @@ DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 KLEB_PATH = os.path.join(DATA_DIR, "FINAL_AMR_KLEBSIELLA (2).csv")
 ECOLI_PATH = os.path.join(DATA_DIR, "E_Coli_Final_ML_Dataset_v1.csv")
 SAUREUS_PATH = os.path.join(DATA_DIR, "S_aureus.csv")
+SYNTHETIC_CSV_PATH = os.path.join(PROJECT_ROOT, "mams_hospital_synthetic_data.csv")
 
-# ─── Geographic Location → Indian State mapping ───
-# Longest-match-first lookup: cities, districts, and states
-LOCATION_TO_STATE = {
-    # Cities → State
-    "kolkata": "West Bengal", "kharagpur": "West Bengal",
-    "bangalore": "Karnataka", "mysore": "Karnataka", "mysuru": "Karnataka",
-    "bellary": "Karnataka", "ballari": "Karnataka", "hassan": "Karnataka",
-    "gullenahalli": "Karnataka", "adaguru": "Karnataka", "chattanahalli": "Karnataka",
-    "dyapalapura": "Karnataka", "soppinahalli": "Karnataka", "shanthi grama": "Karnataka",
-    "chennai": "Tamil Nadu", "vellore": "Tamil Nadu", "madurai": "Tamil Nadu",
-    "thanjavur": "Tamil Nadu", "hosur": "Tamil Nadu", "ashok nagar": "Tamil Nadu",
-    "vengaivasal": "Tamil Nadu", "vengabakkam": "Tamil Nadu", "madambakkam": "Tamil Nadu",
-    "keerapakkam": "Tamil Nadu", "kanchipuram": "Tamil Nadu",
-    "cochin": "Kerala", "kochi": "Kerala", "amritapuri": "Kerala",
-    "kollam": "Kerala", "alappuzha": "Kerala", "kodungallur": "Kerala",
-    "munambam": "Kerala",
-    "mumbai": "Maharashtra", "pune": "Maharashtra", "nagpur": "Maharashtra",
-    "aurangabad": "Maharashtra", "jawhar": "Maharashtra",
-    "hyderabad": "Telangana", "hyderbad": "Telangana",
-    "ahmedabad": "Gujarat", "vadodara": "Gujarat", "anand": "Gujarat",
-    "banaskantha": "Gujarat", "dantiwada": "Gujarat",
-    "guwahati": "Assam", "silagrant": "Assam", "sila grant": "Assam",
-    "garoghuli": "Assam", "gorchuk": "Assam", "diparbill": "Assam",
-    "north guwahati": "Assam",
-    "shillong": "Meghalaya", "tura": "Meghalaya", "mawbri": "Meghalaya",
-    "nonglakhiat": "Meghalaya", "iewduh": "Meghalaya", "burabazar": "Meghalaya",
-    "agartala": "Tripura",
-    "delhi": "Delhi", "new delhi": "Delhi", "bhajanpura": "Delhi",
-    "safdarjung": "Delhi",
-    "rohtak": "Haryana", "karnal": "Haryana",
-    "chandigarh": "Chandigarh",
-    "aligarh": "Uttar Pradesh", "lucknow": "Uttar Pradesh",
-    "varanasi": "Uttar Pradesh", "allahabad": "Uttar Pradesh",
-    "puttaparthi": "Andhra Pradesh", "guntur": "Andhra Pradesh",
-    # States (for "India: Gujarat" etc.)
-    "tamil nadu": "Tamil Nadu", "tamilnadu": "Tamil Nadu",
-    "karnataka": "Karnataka", "kerala": "Kerala",
-    "maharashtra": "Maharashtra", "gujarat": "Gujarat",
-    "rajasthan": "Rajasthan", "rajsthan": "Rajasthan",
-    "meghalaya": "Meghalaya", "assam": "Assam", "tripura": "Tripura",
-    "mizoram": "Mizoram", "manipur": "Manipur", "nagaland": "Nagaland",
-    "sikkim": "Sikkim", "arunachal pradesh": "Arunachal Pradesh",
-    "west bengal": "West Bengal", "bihar": "Bihar", "odisha": "Odisha",
-    "jharkhand": "Jharkhand",
-    "punjab": "Punjab", "haryana": "Haryana",
-    "telangana": "Telangana", "andhra pradesh": "Andhra Pradesh",
-    "uttar pradesh": "Uttar Pradesh",
-    "madhya pradesh": "Madhya Pradesh",
-    "chattisgarh": "Chhattisgarh", "chhattisgarh": "Chhattisgarh",
-    "puducherry": "Puducherry", "goa": "Goa",
-    "jammu": "Jammu and Kashmir", "kashmir": "Jammu and Kashmir",
-    "himachal": "Himachal Pradesh",
-}
-# Sort by key length descending for longest-match-first
-_SORTED_LOC_KEYS = sorted(LOCATION_TO_STATE.keys(), key=len, reverse=True)
-
-# Zone → States (for fallback when state can't be extracted)
-ZONE_TO_STATES = {
-    "North": ["Delhi", "Uttar Pradesh", "Punjab", "Haryana", "Chandigarh",
-              "Jammu and Kashmir", "Himachal Pradesh", "Uttarakhand"],
-    "South": ["Tamil Nadu", "Kerala", "Karnataka", "Andhra Pradesh",
-              "Telangana", "Puducherry"],
-    "East": ["West Bengal", "Bihar", "Odisha", "Jharkhand"],
-    "North-East": ["Assam", "Sikkim", "Manipur", "Mizoram", "Tripura",
-                   "Meghalaya", "Nagaland", "Arunachal Pradesh"],
-    "West": ["Maharashtra", "Gujarat", "Rajasthan", "Goa",
-             "Dadra and Nagar Haveli", "Daman and Diu"],
-    "Central": ["Madhya Pradesh", "Chhattisgarh"],
-}
-ALL_STATES = [s for states in ZONE_TO_STATES.values() for s in states]
-
-# Neighbors for interpolation (used for states with no data)
-STATE_NEIGHBORS = {
-    "Madhya Pradesh": ["Uttar Pradesh", "Rajasthan", "Gujarat", "Maharashtra", "Chhattisgarh"],
-    "Chhattisgarh": ["Madhya Pradesh", "Uttar Pradesh", "Jharkhand", "Odisha", "Maharashtra", "Telangana"],
-    "Uttarakhand": ["Uttar Pradesh", "Himachal Pradesh", "Delhi", "Haryana"],
-    "Himachal Pradesh": ["Punjab", "Haryana", "Uttarakhand", "Chandigarh"],
-    "Jammu and Kashmir": ["Punjab", "Himachal Pradesh"],
-    "Sikkim": ["West Bengal", "Assam"],
-    "Nagaland": ["Assam", "Manipur"],
-    "Arunachal Pradesh": ["Assam"],
-    "Goa": ["Maharashtra", "Karnataka"],
-    "Dadra and Nagar Haveli": ["Gujarat", "Maharashtra"],
-    "Daman and Diu": ["Gujarat"],
-    "Puducherry": ["Tamil Nadu"],
-    "Lakshadweep": ["Kerala"],
-    "Andaman and Nicobar": ["West Bengal"],
-}
-
-
-def extract_state(geo_loc: str) -> str:
-    """Extract Indian state name from a Geographic Location string.
-    
-    Examples:
-        'India: Vellore'          → 'Tamil Nadu'
-        'India: Kolkata'          → 'West Bengal'
-        'India: Chattisgarh, ...' → 'Chhattisgarh'
-        'India: Gujarat'          → 'Gujarat'
-        'India'                   → None
-    """
-    if not isinstance(geo_loc, str):
-        return None
-    loc = re.sub(r'^India\s*:?\s*', '', geo_loc, flags=re.IGNORECASE).strip().lower()
-    if not loc or loc == 'india':
-        return None
-    for key in _SORTED_LOC_KEYS:
-        if key in loc:
-            return LOCATION_TO_STATE[key]
-    return None
-
+# Note: Regions and mappings are now discovered dynamically from the synthetic dataset.
 
 def load_and_aggregate_data():
     """
-    Loads K. pneumo, E. coli, and S. aureus data.
-    Extracts Indian state from Geographic Location for state-level granularity.
-    Falls back to zone-level region column when state can't be extracted.
+    Loads synthetic AMR surveillance data from CSV if available, or generates it.
     Returns DataFrame with columns: [state, antibiotic_name, phenotype_label, year, pathogen]
     """
-    dfs = []
-
-    # ── 1. Klebsiella ──
-    if os.path.exists(KLEB_PATH):
+    if os.path.exists(SYNTHETIC_CSV_PATH):
         try:
-            df_k = pd.read_csv(KLEB_PATH,
-                               usecols=["region", "Geographic Location", "antibiotic_name",
-                                        "phenotype_label", "Collection Year"],
-                               dtype=str)
-            df_k.rename(columns={"Collection Year": "year"}, inplace=True)
-            df_k["phenotype_label"] = pd.to_numeric(df_k["phenotype_label"], errors='coerce')
-            df_k["state"] = df_k["Geographic Location"].apply(extract_state)
-            df_k["pathogen"] = "K. pneumoniae"
-            dfs.append(df_k[["state", "region", "antibiotic_name", "phenotype_label", "year", "pathogen"]])
-            logger.info(f"Klebsiella loaded: {len(df_k)} rows, {df_k['state'].notna().sum()} state-mapped")
+            df = pd.read_csv(SYNTHETIC_CSV_PATH)
+            logger.info(f"Loaded synthetic Hyderabad data from CSV: {len(df)} rows")
+            return df
         except Exception as e:
-            logger.error(f"Error loading Klebsiella: {e}")
+            logger.error(f"Error loading synthetic CSV: {e}. Falling back to generation.")
 
-    # ── 2. E. coli ──
-    if os.path.exists(ECOLI_PATH):
-        try:
-            df_e = pd.read_csv(ECOLI_PATH, header=0,
-                               usecols=["antibiotic_name", "phenotype_label",
-                                        "collection_year", "region", "state_ut"],
-                               dtype=str)
-            df_e.rename(columns={"collection_year": "year"}, inplace=True)
-            df_e["phenotype_label"] = pd.to_numeric(df_e["phenotype_label"], errors='coerce')
-            # state_ut contains Geographic Location strings → extract state
-            df_e["state"] = df_e["state_ut"].apply(extract_state)
-            df_e["pathogen"] = "E. coli"
-            dfs.append(df_e[["state", "region", "antibiotic_name", "phenotype_label", "year", "pathogen"]])
-            logger.info(f"E. coli loaded: {len(df_e)} rows, {df_e['state'].notna().sum()} state-mapped")
-        except Exception as e:
-            logger.error(f"Error loading E. Coli: {e}")
-
-    # ── 3. S. aureus ──
-    if os.path.exists(SAUREUS_PATH):
-        try:
-            df_s = pd.read_csv(SAUREUS_PATH,
-                               usecols=["Geographic Location", "Antibiotic", "Resistant Phenotype"],
-                               dtype=str)
-            df_s.rename(columns={
-                "Geographic Location": "geo_loc",
-                "Antibiotic": "antibiotic_name",
-                "Resistant Phenotype": "phenotype_status"
-            }, inplace=True)
-            df_s["state"] = df_s["geo_loc"].apply(extract_state)
-            df_s["phenotype_label"] = df_s["phenotype_status"].apply(
-                lambda x: 1 if isinstance(x, str) and x.strip().lower() == "resistant" else 0
-            )
-            df_s["year"] = "2024"
-            df_s["pathogen"] = "S. aureus"
-            df_s["region"] = "Other"  # S. aureus has no region column
-            dfs.append(df_s[["state", "region", "antibiotic_name", "phenotype_label", "year", "pathogen"]])
-            logger.info(f"S. aureus loaded: {len(df_s)} rows, {df_s['state'].notna().sum()} state-mapped")
-        except Exception as e:
-            logger.error(f"Error loading S. Aureus: {e}")
-
-    if not dfs:
-        return pd.DataFrame()
-
-    df = pd.concat(dfs, ignore_index=True)
-
-    # Normalize zone-level region column (for fallback)
-    df["region"] = df["region"].fillna("Other").replace({
-        "east": "East", "west": "West", "north": "North", "south": "South",
-        "north-east": "North-East", "North-east": "North-East"
-    })
-
-    # Clean Antibiotic Names
-    df["antibiotic_name"] = df["antibiotic_name"].str.title().str.strip()
-
-    state_mapped = df["state"].notna().sum()
-    logger.info(f"Total: {len(df)} rows, {state_mapped} ({state_mapped/len(df)*100:.0f}%) mapped to states")
+    np.random.seed(42) # For reproducibility
     
-    # DEBUG: Print pathogen counts
-    print("DEBUG: GLOBAL_DF Pathogen Counts:")
-    print(df["pathogen"].value_counts())
-    print("DEBUG: Sample rows:")
-    print(df.head())
+    total_isolates = 2500
     
+    # Distribution centered around Bachupally
+    regions = ["Bachupally", "Nizampet", "Kukatpally", "Miyapur", "Gachibowli", 
+               "Kondapur", "Ameerpet", "Banjara Hills", "Secunderabad", "Uppal"]
+    probs = [0.35, 0.20, 0.15, 0.10, 0.08, 0.06, 0.03, 0.02, 0.005, 0.005]
+    
+    pathogens = ["K. pneumoniae", "E. coli", "S. aureus"]
+    pathogen_probs = [0.40, 0.45, 0.15]
+    
+    antibiotics = {
+        "K. pneumoniae": ["Meropenem", "Ceftriaxone", "Ciprofloxacin", "Amikacin", "Colistin"],
+        "E. coli": ["Meropenem", "Ceftriaxone", "Ciprofloxacin", "Amikacin", "Nitrofurantoin"],
+        "S. aureus": ["Methicillin", "Vancomycin", "Linezolid", "Clindamycin"]
+    }
+    
+    # Base resistance probabilties per drug (adjust to make realistic)
+    base_res_probs = {
+        "Meropenem": 0.25,
+        "Ceftriaxone": 0.60,
+        "Ciprofloxacin": 0.55,
+        "Amikacin": 0.15,
+        "Colistin": 0.02,
+        "Nitrofurantoin": 0.10,
+        "Methicillin": 0.40,
+        "Vancomycin": 0.01,
+        "Linezolid": 0.01,
+        "Clindamycin": 0.35,
+        "Piperacillin": 0.30
+    }
+    
+    years = [2021, 2022, 2023, 2024]
+    year_probs = [0.15, 0.25, 0.30, 0.30]
+
+    data = []
+    
+    # Generate random data
+    selected_regions = np.random.choice(regions, size=total_isolates, p=probs)
+    selected_pathogens = np.random.choice(pathogens, size=total_isolates, p=pathogen_probs)
+    selected_years = np.random.choice(years, size=total_isolates, p=year_probs)
+    
+    for i in range(total_isolates):
+        r = selected_regions[i]
+        p = selected_pathogens[i]
+        y = selected_years[i]
+        
+        # Pick a random antibiotic tested for this pathogen
+        ab = np.random.choice(antibiotics[p])
+        
+        # Calculate resistance probability based on drug base rate + some noise + slight regional variation
+        base_rate = base_res_probs.get(ab, 0.3)
+        
+        # (e.g. Bachupally hospital might see slightly worse cases?)
+        reg_mod = 1.1 if r == "Bachupally" else 1.0
+        
+        # (e.g. trend going up slightly over years)
+        yr_mod = 1.0 + (y - 2021) * 0.05
+        
+        final_prob = min(0.99, base_rate * reg_mod * yr_mod)
+        
+        is_resistant = np.random.binomial(1, final_prob)
+        
+        data.append({
+            "state": r,           # Using 'state' instead of 'locality' to reuse existing map logic
+            "region": "Hyderabad", 
+            "antibiotic_name": ab,
+            "phenotype_label": int(is_resistant),
+            "year": str(y),
+            "pathogen": p
+        })
+
+    df = pd.DataFrame(data)
+    
+    # Save for future use
+    try:
+        df.to_csv(SYNTHETIC_CSV_PATH, index=False)
+        logger.info(f"Saved generated synthetic data to {SYNTHETIC_CSV_PATH}")
+    except Exception as e:
+        logger.error(f"Could not save synthetic CSV: {e}")
+
+    logger.info(f"Generated synthetic Hyderabad data: {len(df)} rows")
     return df
 
 
@@ -239,61 +139,18 @@ def get_pathogen_counts() -> Dict[str, int]:
 
 def _build_state_map(df: pd.DataFrame) -> Dict[str, Dict[str, Any]]:
     """
-    Build per-state resistance data from a DataFrame.
-    
-    Strategy:
-    1. State-level: group by extracted state, compute mean resistance + count
-    2. Zone fallback: for records without a state, use zone→states mapping
-    3. Neighbor interpolation: for remaining empty states, average neighbors
+    Build per-state resistance data from a DataFrame dynamically.
     """
-    state_data = {}  # state → {"total_r": float, "total_n": int}
+    state_data = {}
 
-    # ── Step 1: Direct state-level aggregation ──
-    state_mapped = df[df["state"].notna()].copy()
-    if not state_mapped.empty:
-        agg = state_mapped.groupby("state")["phenotype_label"].agg(["sum", "count"]).reset_index()
-        for _, row in agg.iterrows():
-            s = row["state"]
-            state_data[s] = {"total_r": row["sum"], "total_n": int(row["count"])}
+    if df.empty:
+        return {}
 
-    # ── Step 2: Zone fallback for unmapped records ──
-    zone_unmapped = df[df["state"].isna()].copy()
-    if not zone_unmapped.empty:
-        zone_agg = zone_unmapped.groupby("region")["phenotype_label"].agg(["sum", "count"]).reset_index()
-        for _, row in zone_agg.iterrows():
-            zone = row["region"]
-            target_states = ZONE_TO_STATES.get(zone, [])
-            if not target_states:
-                continue
-            # Distribute zone data equally among states not yet directly mapped
-            unmapped_states = [s for s in target_states if s not in state_data]
-            if not unmapped_states:
-                # All states already have data; add proportionally
-                unmapped_states = target_states
-            per_state_r = row["sum"] / len(unmapped_states)
-            per_state_n = max(1, int(row["count"] / len(unmapped_states)))
-            for s in unmapped_states:
-                if s in state_data:
-                    state_data[s]["total_r"] += per_state_r
-                    state_data[s]["total_n"] += per_state_n
-                else:
-                    state_data[s] = {"total_r": per_state_r, "total_n": per_state_n}
-
-    # ── Step 3: Neighbor interpolation for remaining empty states ──
-    for state in ALL_STATES:
-        if state not in state_data:
-            neighbors = STATE_NEIGHBORS.get(state, [])
-            neighbor_rates = [
-                state_data[n]["total_r"] / state_data[n]["total_n"]
-                for n in neighbors if n in state_data and state_data[n]["total_n"] > 0
-            ]
-            if neighbor_rates:
-                avg_rate = np.mean(neighbor_rates)
-                state_data[state] = {"total_r": avg_rate * 10, "total_n": 10, "interpolated": True}
-            else:
-                # Last resort: use global mean
-                global_mean = df["phenotype_label"].mean()
-                state_data[state] = {"total_r": global_mean * 5, "total_n": 5, "interpolated": True}
+    # 1. State-level aggregation
+    agg = df.groupby("state")["phenotype_label"].agg(["sum", "count"]).reset_index()
+    for _, row in agg.iterrows():
+        s = row["state"]
+        state_data[s] = {"total_r": row["sum"], "total_n": int(row["count"])}
 
     return state_data
 
@@ -308,6 +165,16 @@ async def get_antibiotics():
     counts = GLOBAL_DF["antibiotic_name"].value_counts()
     valid_ab = counts[counts >= 50].index.tolist()
     return {"antibiotics": sorted(valid_ab)}
+
+
+@router.get("/pathogens")
+async def get_pathogens():
+    """Return list of unique pathogens found in the dataset."""
+    if GLOBAL_DF.empty:
+        return {"pathogens": []}
+    
+    pathogens = GLOBAL_DF["pathogen"].unique().tolist()
+    return {"pathogens": sorted(pathogens)}
 
 
 @router.get("/antibiotic_performance", response_model=MapResponse)
@@ -331,8 +198,11 @@ async def get_antibiotic_performance(antibiotic: Optional[str] = None):
 
     state_data = _build_state_map(df)
 
+    # Use dynamic regions from GLOBAL_DF or state_data
+    all_regions = sorted(GLOBAL_DF["state"].unique())
     map_data = []
-    for state in ALL_STATES:
+    
+    for state in all_regions:
         info = state_data.get(state)
         # Threshold: if filtering by specific drug, require at least 5 isolates to show logic
         min_n = 5 if antibiotic else 1
@@ -340,13 +210,10 @@ async def get_antibiotic_performance(antibiotic: Optional[str] = None):
         if info and info["total_n"] >= min_n:
             rate = round((info["total_r"] / info["total_n"]) * 100, 1)
             n = info["total_n"]
-            is_est = info.get("interpolated", False)
             
             detail_text = f"Resistance: {rate}%"
             if antibiotic:
                 detail_text = f"{antibiotic}: {rate}%"
-            if is_est:
-                detail_text += " (est.)"
 
             map_data.append({
                 "region": state,
@@ -354,7 +221,7 @@ async def get_antibiotic_performance(antibiotic: Optional[str] = None):
                 "metadata": {
                     "detail": detail_text,
                     "isolates": n,
-                    "estimated": is_est,
+                    "estimated": False,
                 }
             })
         else:
@@ -478,21 +345,22 @@ async def get_carbapenem_resistance():
 
     state_data = _build_state_map(carb_df)
 
+    all_regions = sorted(GLOBAL_DF["state"].unique())
     map_data = []
-    for state in ALL_STATES:
+
+    for state in all_regions:
         info = state_data.get(state)
         if info and info["total_n"] > 0:
             rate = round((info["total_r"] / info["total_n"]) * 100, 1)
             n = info["total_n"]
-            is_est = info.get("interpolated", False)
             map_data.append({
                 "region": state,
                 "value": rate,
                 "metadata": {
-                    "detail": f"Carbapenem R: {rate}%{' (est.)' if is_est else ''}",
+                    "detail": f"Carbapenem R: {rate}%",
                     "isolates": n,
                     "info": "Last-resort antibiotic resistance",
-                    "estimated": is_est,
+                    "estimated": False,
                 }
             })
         else:

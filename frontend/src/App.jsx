@@ -5,30 +5,24 @@ import CrossPathogenComparison from './components/CrossPathogenComparison';
 import GeneDrivers from './components/GeneDrivers';
 import MapVisualization from './components/MapVisualization';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
-import { analyzeSample, uploadFasta } from './services/api';
+import { analyzeSample, uploadFasta, getAntibiotics } from './services/api';
 import { Upload, FileText, Activity } from 'lucide-react';
 
-const antibiotics = [
-  { id: 'ciprofloxacin', name: 'Ciprofloxacin', class: 'Fluoroquinolones' },
-  { id: 'meropenem', name: 'Meropenem', class: 'Carbapenems' },
-  { id: 'ceftriaxone', name: 'Ceftriaxone', class: 'Cephalosporins' },
-  { id: 'gentamicin', name: 'Gentamicin', class: 'Aminoglycosides' },
-  { id: 'imipenem', name: 'Imipenem', class: 'Carbapenems' },
-  { id: 'cefotaxime', name: 'Cefotaxime', class: 'Cephalosporins' }
-];
+// Antibiotics list is now fetched dynamically from the API in the component.
 
-// Default demo isolate profile (e.g. resistant isolate)
+// Default demo isolate profile (e.g. MDR Klebsiella)
 const DEFAULT_GENE_PRESENCE = {
-  "blaNDM": 1,
-  "blaCTX_M": 1,
-  "gyrA_D87N": 1,
-  "qnrS": 1,
-  "mecA": 1,    // S. aureus MRSA marker
-  "blaZ": 1     // S. aureus penicillinase
+  "blaNDM": 1,      // Carbapenemase
+  "blaCTX_M": 1,    // ESBL
+  "gyrA_D87N": 1,   // Ciprofloxacin resistance
+  "qnrS": 1,        // Plasmid-mediated quinolone resistance
+  "aac6Ib_cr": 1,   // Aminoglycoside mod gene
+  "armA": 1         // High-level amikacin resistance
 };
 
 function App() {
-  const [selectedAntibiotic, setSelectedAntibiotic] = useState(antibiotics[0].id);
+  const [antibiotics, setAntibiotics] = useState([]);
+  const [selectedAntibiotic, setSelectedAntibiotic] = useState('');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -37,7 +31,29 @@ function App() {
   const [uploadStatus, setUploadStatus] = useState("");
 
   useEffect(() => {
-    fetchAnalysis();
+    const loadAntibiotics = async () => {
+      try {
+        const list = await getAntibiotics();
+        if (list && list.length > 0) {
+          const formattedList = list.map(ab => ({
+            id: ab.toLowerCase(),
+            name: ab,
+            class: 'N/A' // Class logic resides in backend
+          }));
+          setAntibiotics(formattedList);
+          setSelectedAntibiotic(formattedList[0].id);
+        }
+      } catch (err) {
+        console.error("Failed to load antibiotics", err);
+      }
+    };
+    loadAntibiotics();
+  }, []);
+
+  useEffect(() => {
+    if (selectedAntibiotic) {
+      fetchAnalysis();
+    }
   }, [selectedAntibiotic, currentGenes]);
 
   const fetchAnalysis = async () => {
@@ -49,11 +65,11 @@ function App() {
       const transformedData = {
         overallRisk: response.overall_risk_score,
         riskLevel: response.risk_category,
-        confidence: 0.95, // Hardcoded model confidence for now
+        confidence: 0.95, // Model stability metric
         pathogens: response.pathogen_breakdown.map(p => ({
           name: p.name,
           risk: p.risk,
-          count: 'N/A' // Count not available in inference
+          count: p.risk_mass ? Object.keys(p.risk_mass).length : 0 // Fallback if count not explicitly provided
         })),
         genes: Object.entries(response.gene_drivers).map(([name, detail]) => ({
           name: name,

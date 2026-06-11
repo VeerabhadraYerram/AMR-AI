@@ -14,12 +14,18 @@ app = FastAPI(
     version="1.0.0"
 )
 
+import os
+
 # CORS Configuration
 origins = [
     "http://localhost:5173",
     "http://localhost:5174",
     "http://localhost:3000",
 ]
+
+frontend_url = os.getenv("FRONTEND_URL")
+if frontend_url:
+    origins.append(frontend_url)
 
 app.add_middleware(
     CORSMiddleware,

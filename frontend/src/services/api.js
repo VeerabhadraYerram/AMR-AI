@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 const api = axios.create({
     baseURL: API_URL,
@@ -77,5 +77,15 @@ export const getHeatmapData = async () => {
     } catch (error) {
         console.error("Failed to fetch heatmap", error);
         return { x_labels: [], y_labels: [], data: [] };
+    }
+};
+
+export const getPathogens = async () => {
+    try {
+        const response = await api.get('/maps/pathogens');
+        return response.data.pathogens || [];
+    } catch (error) {
+        console.error("Failed to fetch pathogens", error);
+        return [];
     }
 };

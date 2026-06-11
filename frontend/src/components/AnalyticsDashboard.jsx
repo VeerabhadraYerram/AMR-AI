@@ -3,7 +3,7 @@ import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
-import { getTrendsData, getHeatmapData, getAntibiotics, getMapData } from '../services/api';
+import { getTrendsData, getHeatmapData, getAntibiotics, getMapData, getPathogens } from '../services/api';
 import { Filter, Calendar, Activity, Map as MapIcon, Grid } from 'lucide-react';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
@@ -74,6 +74,7 @@ const AnalyticsDashboard = () => {
     const [heatmapData, setHeatmapData] = useState(null);
     const [regionalData, setRegionalData] = useState(null);
     const [antibiotics, setAntibiotics] = useState([]);
+    const [pathogens, setPathogens] = useState([]);
 
     // Filters
     const [selectedAntibiotic, setSelectedAntibiotic] = useState('');
@@ -92,12 +93,14 @@ const AnalyticsDashboard = () => {
     const loadInitialData = async () => {
         setLoading(true);
         try {
-            const [abList, hData] = await Promise.all([
+            const [abList, hData, pList] = await Promise.all([
                 getAntibiotics(),
-                getHeatmapData()
+                getHeatmapData(),
+                getPathogens()
             ]);
             setAntibiotics(abList);
             setHeatmapData(hData);
+            setPathogens(pList);
             await loadTrends(); // Load initial trends
             await loadRegionalComparison();
         } catch (e) {
@@ -192,7 +195,7 @@ const AnalyticsDashboard = () => {
                             }}
                         >
                             <option value="">All Pathogens</option>
-                            {["E. coli", "K. pneumoniae", "S. aureus", "Acinetobacter", "Pseudomonas"].map(p => (
+                            {pathogens.map(p => (
                                 <option key={p} value={p}>{p}</option>
                             ))}
                         </select>
@@ -237,7 +240,7 @@ const AnalyticsDashboard = () => {
                     <div className="card-header" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <MapIcon size={18} color="var(--color-primary)" />
                         <h3 style={{ fontSize: '1rem', margin: 0 }}>
-                            Top 10 High-Resistance States {selectedAntibiotic && `(${selectedAntibiotic})`}
+                            Top 10 High-Resistance Regions {selectedAntibiotic && `(${selectedAntibiotic})`}
                         </h3>
                     </div>
                     {regionalData && regionalData.length > 0 ? (
@@ -334,7 +337,7 @@ const AnalyticsDashboard = () => {
                             <strong>Carbapenem Resistance:</strong> High resistance in Klebsiella and E. coli indicates urgent need for stewardship in ICUs.
                         </li>
                         <li style={{ marginBottom: '8px' }}>
-                            <strong>Regional Variation:</strong> Significant disparities between North and South India suggest local transmission dynamics.
+                            <strong>Regional Variation:</strong> Significant disparities across Hyderabad localities suggest localized transmission dynamics.
                         </li>
                         <li style={{ marginBottom: '8px' }}>
                             <strong>Recommendation:</strong> Prioritize access to reserve antibiotics (e.g., Colistin) in high-burden red zones shown in the map.
